@@ -8,146 +8,150 @@ export default async function handler(req, res) {
     });
   }
 
+  // Helper fungsi validasi payload data
+  function validatePayload(data) {
+    const cleanTitle = (data.Title || '').trim();
+    const cleanTopic = (data.Topic || '').trim();
+    const cleanGrade = (data.Grade || '').trim();
+    const cleanURL = (data.URL || '').trim();
+    const cleanDescription = (data.Description || '').trim();
+
+    if (!cleanTitle || cleanTitle.length < 3 || cleanTitle.length > 100) {
+      return 'Judul (Title) harus terdiri dari 3 hingga 100 karakter.';
+    }
+    if (!cleanTopic) {
+      return 'Topik (Topic) wajib dipilih/diisi.';
+    }
+    const allowedGrades = ['VII', 'VIII', 'IX'];
+    if (!allowedGrades.includes(cleanGrade)) {
+      return 'Kelas (Grade) hanya boleh bernilai VII, VIII, atau IX.';
+    }
+    const urlPattern = /^https?:\/\/.+/i;
+    if (!cleanURL || !urlPattern.test(cleanURL)) {
+      return 'URL tidak valid. Wajib diawali dengan http:// atau https://';
+    }
+    if (!cleanDescription || cleanDescription.length < 10 || cleanDescription.length > 500) {
+      return 'Deskripsi (Description) harus terdiri dari 10 hingga 500 karakter.';
+    }
+
+    return {
+      Title: cleanTitle,
+      Topic: cleanTopic,
+      Grade: cleanGrade,
+      URL: cleanURL,
+      Description: cleanDescription
+    };
+  }
+
   // -------------------------------------------------------------
-  // FITUR READ (GET)
+  // 1. GET (READ)
   // -------------------------------------------------------------
   if (req.method === 'GET') {
     try {
-      const response = await fetch(scriptUrl, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Google Apps Script merespons dengan status ${response.status}`);
-      }
-
+      const response = await fetch(scriptUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
+      if (!response.ok) throw new Error(`Google Apps Script error status ${response.status}`);
       const data = await response.json();
       return res.status(200).json(data);
-
     } catch (error) {
-      return res.status(500).json({
-        status: 'error',
-        message: 'Gagal mengambil data dari Google Sheets',
-        detail: error.message
-      });
+      return res.status(500).json({ status: 'error', message: 'Gagal mengambil data.', detail: error.message });
     }
   }
 
   // -------------------------------------------------------------
-  // FITUR CREATE (POST)
+  // 2. POST (CREATE)
   // -------------------------------------------------------------
   else if (req.method === 'POST') {
     try {
-      const { Title, Topic, Grade, URL, Description } = req.body || {};
-
-      // Cleaning / Trimming
-      const cleanTitle = (Title || '').trim();
-      const cleanTopic = (Topic || '').trim();
-      const cleanGrade = (Grade || '').trim();
-      const cleanURL = (URL || '').trim();
-      const cleanDescription = (Description || '').trim();
-
-      // --- VALIDASI SERVER-SIDE ---
-      // 1. Validasi Title
-      if (!cleanTitle) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'Judul (Title) wajib diisi.'
-        });
-      }
-      if (cleanTitle.length < 3 || cleanTitle.length > 100) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'Judul harus terdiri dari 3 hingga 100 karakter.'
-        });
+      const validated = validatePayload(req.body || {});
+      if (typeof validated === 'string') {
+        return res.status(400).json({ status: 'error', message: validated });
       }
 
-      // 2. Validasi Topic
-      if (!cleanTopic) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'Topik (Topic) wajib dipilih/diisi.'
-        });
-      }
-
-      // 3. Validasi Grade (Hanya boleh VII, VIII, atau IX)
-      const allowedGrades = ['VII', 'VIII', 'IX'];
-      if (!allowedGrades.includes(cleanGrade)) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'Kelas (Grade) hanya boleh bernilai VII, VIII, atau IX.'
-        });
-      }
-
-      // 4. Validasi URL (Wajib protokol http atau https)
-      const urlPattern = /^https?:\/\/.+/i;
-      if (!cleanURL || !urlPattern.test(cleanURL)) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'URL tidak valid. URL wajib diawali dengan http:// atau https://'
-        });
-      }
-
-      // 5. Validasi Description
-      if (!cleanDescription) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'Deskripsi (Description) wajib diisi.'
-        });
-      }
-      if (cleanDescription.length < 10 || cleanDescription.length > 500) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'Deskripsi harus terdiri dari 10 hingga 500 karakter.'
-        });
-      }
-
-      // Generator ID unik & Timestamp
-      const generatedID = 'RES-' + Date.now();
-      const createdAt = new Date().toISOString();
-
-      const newResource = {
-        ID: generatedID,
-        Title: cleanTitle,
-        Topic: cleanTopic,
-        Grade: cleanGrade,
-        URL: cleanURL,
-        Description: cleanDescription,
-        CreatedAt: createdAt
+      const payload = {
+        action: 'CREATE',
+        ID: 'RES-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+        CreatedAt: new Date().toISOString(),
+        ...validated
       };
 
-      // Kirim payload terverifikasi ke Google Apps Script
       const response = await fetch(scriptUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(newResource)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
-
-      if (!response.ok) {
-        throw new Error(`Google Apps Script merespons dengan status ${response.status}`);
-      }
-
       const result = await response.json();
       return res.status(201).json(result);
-
     } catch (error) {
-      return res.status(500).json({
-        status: 'error',
-        message: 'Gagal menambah data ke Google Sheets',
-        detail: error.message
-      });
+      return res.status(500).json({ status: 'error', message: 'Gagal menambah data.', detail: error.message });
     }
   }
 
-  // Jika method selain GET atau POST
+  // -------------------------------------------------------------
+  // 3. PUT (UPDATE)
+  // -------------------------------------------------------------
+  else if (req.method === 'PUT') {
+    try {
+      const { ID } = req.body || {};
+      const cleanID = (ID || '').trim();
+
+      if (!cleanID) {
+        return res.status(400).json({ status: 'error', message: 'ID unik wajib disertakan untuk memperbarui data.' });
+      }
+
+      const validated = validatePayload(req.body || {});
+      if (typeof validated === 'string') {
+        return res.status(400).json({ status: 'error', message: validated });
+      }
+
+      const payload = {
+        action: 'UPDATE',
+        ID: cleanID,
+        ...validated
+      };
+
+      const response = await fetch(scriptUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      return res.status(200).json(result);
+    } catch (error) {
+      return res.status(500).json({ status: 'error', message: 'Gagal memperbarui data.', detail: error.message });
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 4. DELETE (DELETE)
+  // -------------------------------------------------------------
+  else if (req.method === 'DELETE') {
+    try {
+      const { ID } = req.body || {};
+      const cleanID = (ID || '').trim();
+
+      if (!cleanID) {
+        return res.status(400).json({ status: 'error', message: 'ID unik wajib disertakan untuk menghapus data.' });
+      }
+
+      const payload = {
+        action: 'DELETE',
+        ID: cleanID
+      };
+
+      const response = await fetch(scriptUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      return res.status(200).json(result);
+    } catch (error) {
+      return res.status(500).json({ status: 'error', message: 'Gagal menghapus data.', detail: error.message });
+    }
+  }
+
   else {
-    res.setHeader('Allow', ['GET', 'POST']);
-    return res.status(405).json({
-      status: 'error',
-      message: `Metode ${req.method} tidak diizinkan`
-    });
+    res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
+    return res.status(405).json({ status: 'error', message: `Metode ${req.method} tidak diizinkan` });
   }
 }

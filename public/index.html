@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Katalog Sumber Belajar Informatika SMP</title>
-  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
@@ -16,42 +16,42 @@
   </header>
 
   <main class="container">
+    <!-- Notifikasi Toast Berhasil -->
+    <div id="toastNotification" class="toast hidden"></div>
+
     <section class="catalog-section">
       <h2>Daftar Sumber Belajar</h2>
 
-      <!-- Loading State -->
       <div id="loadingState" class="state-container">
         <div class="spinner"></div>
         <p>Memuat data sumber belajar...</p>
       </div>
 
-      <!-- Empty State -->
       <div id="emptyState" class="state-container hidden">
         <p class="state-title">Belum ada sumber belajar</p>
         <p>Data sumber belajar pada tab Resources masih kosong.</p>
       </div>
 
-      <!-- Error State -->
       <div id="errorState" class="state-container error-box hidden">
         <p class="state-title">Gagal Memuat Data</p>
         <p id="errorMessage">Terjadi kesalahan saat mengambil data dari server.</p>
         <button id="retryBtn" class="btn btn-secondary">Coba Lagi</button>
       </div>
 
-      <!-- Grid Katalog -->
       <div id="resourceGrid" class="resource-grid hidden"></div>
     </section>
   </main>
 
-  <!-- Modal Form Tambah Data (CREATE) -->
+  <!-- Modal Form (CREATE / UPDATE) -->
   <div id="modalOverlay" class="modal-overlay hidden">
     <div class="modal">
       <div class="modal-header">
-        <h3>Tambah Sumber Belajar Baru</h3>
+        <h3 id="modalTitle">Tambah Sumber Belajar Baru</h3>
         <button id="closeModalBtn" class="btn-close">&times;</button>
       </div>
       
       <form id="addResourceForm" novalidate>
+        <input type="hidden" id="resourceId">
         <div id="formAlert" class="alert alert-error hidden"></div>
 
         <div class="form-group">
@@ -97,7 +97,7 @@
 
         <div class="form-group">
           <label for="inputDescription">Deskripsi Singkat (Description) <span class="required">*</span></label>
-          <textarea id="inputDescription" rows="3" placeholder="Jelaskan secara singkat isi sumber belajar ini (min. 10 karakter)..." required></textarea>
+          <textarea id="inputDescription" rows="3" placeholder="Jelaskan secara singkat isi sumber belajar ini..." required></textarea>
           <small class="error-text" id="errorDescription"></small>
         </div>
 
@@ -112,6 +112,27 @@
     </div>
   </div>
 
-  <script src="./js/app.js"></script>
+  <!-- Modal Konfirmasi Hapus (DELETE) -->
+  <div id="deleteModalOverlay" class="modal-overlay hidden">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h3>Konfirmasi Hapus</h3>
+        <button id="closeDeleteModalBtn" class="btn-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Apakah Anda yakin ingin menghapus sumber belajar <strong id="deleteTargetTitle"></strong>?</p>
+        <p class="text-subtle">Tindakan ini tidak dapat dibatalkan.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="cancelDeleteBtn" class="btn btn-secondary">Batal</button>
+        <button type="button" id="confirmDeleteBtn" class="btn btn-danger">
+          <span id="deleteBtnText">Hapus</span>
+          <span id="deleteSpinner" class="spinner-sm hidden"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
 </body>
 </html>

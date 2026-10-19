@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Katalog Sumber Belajar Informatika SMP</title>
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="container navbar-container">
+      <h1>Katalog Sumber Belajar Informatika SMP</h1>
+      <button id="openModalBtn" class="btn btn-primary">+ Tambah Sumber Belajar</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="catalog-section">
+      <h2>Daftar Sumber Belajar</h2>
+
+      <!-- Loading State -->
+      <div id="loadingState" class="state-container">
+        <div class="spinner"></div>
+        <p>Memuat data sumber belajar...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="state-container hidden">
+        <p class="state-title">Belum ada sumber belajar</p>
+        <p>Data sumber belajar pada tab Resources masih kosong.</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="errorState" class="state-container error-box hidden">
+        <p class="state-title">Gagal Memuat Data</p>
+        <p id="errorMessage">Terjadi kesalahan saat mengambil data dari server.</p>
+        <button id="retryBtn" class="btn btn-secondary">Coba Lagi</button>
+      </div>
+
+      <!-- Grid Katalog -->
+      <div id="resourceGrid" class="resource-grid hidden"></div>
+    </section>
+  </main>
+
+  <!-- Modal Form Tambah Data (CREATE) -->
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Tambah Sumber Belajar Baru</h3>
+        <button id="closeModalBtn" class="btn-close">&times;</button>
+      </div>
+      
+      <form id="addResourceForm" novalidate>
+        <div id="formAlert" class="alert alert-error hidden"></div>
+
+        <div class="form-group">
+          <label for="inputTitle">Judul (Title) <span class="required">*</span></label>
+          <input type="text" id="inputTitle" placeholder="Contoh: Modul Algoritma dan Pemrograman" required>
+          <small class="error-text" id="errorTitle"></small>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="inputTopic">Topik (Topic) <span class="required">*</span></label>
+            <select id="inputTopic" required>
+              <option value="">-- Pilih Topik --</option>
+              <option value="Berpikir Komputasional">Berpikir Komputasional</option>
+              <option value="Teknologi Informasi dan Komunikasi">Teknologi Informasi dan Komunikasi</option>
+              <option value="Sistem Komputer">Sistem Komputer</option>
+              <option value="Jaringan Komputer dan Internet">Jaringan Komputer dan Internet</option>
+              <option value="Analisis Data">Analisis Data</option>
+              <option value="Algoritma dan Pemrograman">Algoritma dan Pemrograman</option>
+              <option value="Dampak Sosial Informatika">Dampak Sosial Informatika</option>
+              <option value="Praktik Lintas Bidang">Praktik Lintas Bidang</option>
+            </select>
+            <small class="error-text" id="errorTopic"></small>
+          </div>
+
+          <div class="form-group">
+            <label for="inputGrade">Kelas (Grade) <span class="required">*</span></label>
+            <select id="inputGrade" required>
+              <option value="">-- Pilih Kelas --</option>
+              <option value="VII">Kelas VII</option>
+              <option value="VIII">Kelas VIII</option>
+              <option value="IX">Kelas IX</option>
+            </select>
+            <small class="error-text" id="errorGrade"></small>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="inputURL">URL Sumber Belajar <span class="required">*</span></label>
+          <input type="url" id="inputURL" placeholder="https://contoh.com/materi.pdf" required>
+          <small class="error-text" id="errorURL"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="inputDescription">Deskripsi Singkat (Description) <span class="required">*</span></label>
+          <textarea id="inputDescription" rows="3" placeholder="Jelaskan secara singkat isi sumber belajar ini (min. 10 karakter)..." required></textarea>
+          <small class="error-text" id="errorDescription"></small>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="cancelBtn" class="btn btn-secondary">Batal</button>
+          <button type="submit" id="submitBtn" class="btn btn-primary">
+            <span id="submitBtnText">Simpan</span>
+            <span id="submitSpinner" class="spinner-sm hidden"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="./js/app.js"></script>
+</body>
+</html>
